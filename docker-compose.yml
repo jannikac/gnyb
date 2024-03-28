@@ -1,0 +1,28 @@
+version: "3.9"
+services:
+  app:
+    image: gnyb-website:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    platform: "linux/amd64"
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://root:changeme@db:5432/db
+  db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_interval: 5s
+      start_period: 5s
+    environment:
+      POSTGRES_PASSWORD: changeme
+      POSTGRES_USER: root
+      POSTGRES_DB: db
