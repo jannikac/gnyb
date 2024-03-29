@@ -18,7 +18,7 @@ Die Website hat neben dem Zweck die Benutzer zu informieren noch einige weitere 
 Docker image herunterladen
 
 ```
-docker pull ghcr.io/jannikac/gnyb-website:latest
+docker pull ghcr.io/jannikac/gnyb:latest
 ```
 
 Image mit der `docker-compose.yml` in dieser Repo starten.
@@ -28,7 +28,7 @@ Image mit der `docker-compose.yml` in dieser Repo starten.
 Diese repo herunterladen
 
 ```bash
-git clone https://github.com/jannikac/gnyb-website.git
+git clone https://github.com/jannikac/gnyb.git
 ```
 
 Eine Postgres Datenbank aufsetzen. Dazu kann die Datei `docker-dev/docker-compose.yml` in dieser Repo verwendet werden.
