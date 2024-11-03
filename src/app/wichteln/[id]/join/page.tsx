@@ -1,8 +1,5 @@
-import { joinRoom } from "../../server";
-import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
+import { JoinRoomForm } from "../../client";
 
 const Page = async ({ params }: { params: { id: string } }) => {
   return (
@@ -37,23 +34,10 @@ const JoinCard = ({ roomId }: { roomId: string }) => {
       </CardHeader>
       <CardContent>
         <p>Du wurdest zu einem Wichtelraum eingeladen.</p>
-        <p>
+        <p className="mb-8">
           Gebe unten deinen Namen ein und klicke auf &apos;Raum beitreten&apos;.
         </p>
-        <form className="mt-8" action={joinRoom}>
-          <Label htmlFor="name">Dein Name</Label>
-          <Input
-            id="name"
-            required
-            name="name"
-            placeholder="Markus"
-            className="w-56"
-          />
-          <input name="roomId" readOnly hidden={true} value={roomId} />
-          <Button className="mt-2" type="submit">
-            Raum beitreten
-          </Button>
-        </form>
+        <JoinRoomForm roomId={roomId} />
       </CardContent>
     </Card>
   );

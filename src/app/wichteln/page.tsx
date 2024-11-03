@@ -1,8 +1,5 @@
-import { createRoom } from "./server";
-import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
+import { CreateRoomForm } from "./client";
 
 const Page = () => {
   return (
@@ -38,20 +35,8 @@ const WichtelCard = () => {
       </CardHeader>
       <CardContent>
         <p>Klicke hier um einen Raum zu erstellen.</p>
-        <p>Du wirst danach zu deinem Raum weitergeleitet.</p>
-        <form className="mt-8" action={createRoom}>
-          <Label htmlFor="name">Dein Name</Label>
-          <Input
-            id="name"
-            name="name"
-            placeholder="Markus"
-            required
-            className="w-56"
-          />
-          <Button className="mt-2" type="submit">
-            Raum erstellen
-          </Button>
-        </form>
+        <p className="mb-8">Du wirst danach zu deinem Raum weitergeleitet.</p>
+        <CreateRoomForm />
       </CardContent>
     </Card>
   );

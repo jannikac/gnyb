@@ -2,7 +2,6 @@
 import type { Room, User } from "@prisma/client";
 import { type FilteredUser, kickFromRoom } from "../server";
 import { IconKey, IconTrash } from "@tabler/icons-react";
-import { useTransition } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Table,
@@ -33,6 +32,11 @@ import {
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
 import { useToast } from "~/components/ui/use-toast";
+import { useForm } from "react-hook-form";
+import { Form } from "~/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { type UserIdSchema, userIdSchema } from "../schemas";
+import { useState } from "react";
 
 const UserList = <T extends FilteredUser[] | User[]>({
   users,
@@ -130,16 +134,20 @@ const KickButton = <T extends User | FilteredUser>({
   user: T;
   room: Room;
 }) => {
-  const [pending, startTransition] = useTransition();
+  const [open, setOpen] = useState(false);
+  const form = useForm<UserIdSchema>({
+    resolver: zodResolver(userIdSchema),
+    defaultValues: { userId: user.id },
+  });
   const { toast } = useToast();
   return (
-    <AlertDialog>
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button
           variant="outline"
           className="px-2"
           disabled={room.started}
-          pending={pending}
+          pending={form.formState.isSubmitting}
           title="Löschen"
         >
           <IconTrash className="h-5 w-5" />
@@ -158,19 +166,34 @@ const KickButton = <T extends User | FilteredUser>({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() =>
-              startTransition(async () => {
-                await kickFromRoom(user.id);
-                toast({
-                  title: "Benutzer entfernt",
-                  variant: "success",
-                  description: `Du hast ${user.name} erfolgreich aus dem Raum entfernt.`,
-                });
-              })
-            }
-          >
-            Bestätigen
+          <AlertDialogAction asChild>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(async (v) => {
+                  try {
+                    await kickFromRoom(v);
+                    setOpen(false);
+                    toast({
+                      title: "Benutzer entfernt",
+                      variant: "success",
+                      description: `Du hast ${user.name} erfolgreich aus dem Raum entfernt.`,
+                    });
+                  } catch (e) {
+                    if (e instanceof Error) {
+                      toast({
+                        title: "Fehler",
+                        variant: "error",
+                        description: e.message,
+                      });
+                    }
+                  }
+                })}
+              >
+                <Button pending={form.formState.isSubmitting} type="submit">
+                  Bestätigen
+                </Button>
+              </form>
+            </Form>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

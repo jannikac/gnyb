@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState } from "react";
 import { startGame } from "../../server";
 import { Button } from "~/components/ui/button";
 
@@ -25,6 +25,10 @@ import {
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
 import { useToast } from "~/components/ui/use-toast";
+import { Form } from "~/components/ui/form";
+import { useForm } from "react-hook-form";
+import { roomIdSchema, type RoomIdSchema } from "../../schemas";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export const InviteButton = ({ roomId }: { roomId: string }) => {
   return (
@@ -47,12 +51,19 @@ export const InviteButton = ({ roomId }: { roomId: string }) => {
 };
 
 export const StartButton = ({ room }: { room: Room }) => {
-  const [pending, startTransition] = useTransition();
+  const [open, setOpen] = useState(false);
+  const form = useForm<RoomIdSchema>({
+    resolver: zodResolver(roomIdSchema),
+    defaultValues: { roomId: room.id },
+  });
   const { toast } = useToast();
   return (
-    <AlertDialog>
+    <AlertDialog onOpenChange={setOpen} open={open}>
       <AlertDialogTrigger asChild>
-        <Button disabled={room.started} pending={pending}>
+        <Button
+          disabled={room.started ? true : undefined}
+          pending={form.formState.isSubmitting}
+        >
           Spiel starten
         </Button>
       </AlertDialogTrigger>
@@ -68,20 +79,35 @@ export const StartButton = ({ room }: { room: Room }) => {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() => {
-              startTransition(async () => {
-                await startGame(room.id);
-                toast({
-                  title: "Spiel gestartet",
-                  variant: "success",
-                  description:
-                    "Du hast das Spiel erfolgreich gestartet. Gehe zurück zum Raum, um deinen Wichtelpartner zu sehen.",
-                });
-              });
-            }}
-          >
-            Bestätigen
+          <AlertDialogAction asChild>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(async (v) => {
+                  try {
+                    await startGame(v);
+                    setOpen(false);
+                    toast({
+                      title: "Spiel gestartet",
+                      variant: "success",
+                      description:
+                        "Du hast das Spiel erfolgreich gestartet. Gehe zurück zum Raum, um deinen Wichtelpartner zu sehen.",
+                    });
+                  } catch (e) {
+                    if (e instanceof Error) {
+                      toast({
+                        title: "Fehler",
+                        variant: "error",
+                        description: e.message,
+                      });
+                    }
+                  }
+                })}
+              >
+                <Button pending={form.formState.isSubmitting} type="submit">
+                  Bestätigen
+                </Button>
+              </form>
+            </Form>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

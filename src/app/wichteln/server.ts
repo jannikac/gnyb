@@ -3,45 +3,51 @@
 import type { Room, User } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { z } from "zod";
 import { db } from "~/server/db";
+import {
+  type JoinSchema,
+  joinSchema,
+  createSchema,
+  type CreateSchema,
+  type UserIdSchema,
+  userIdSchema,
+  type RoomIdSchema,
+  roomIdSchema,
+} from "./schemas";
 
-const UserSchema = z.object({ name: z.string().min(1) });
-
-export const createRoom = async (formData: FormData) => {
-  const input = UserSchema.parse({ name: formData.get("name") });
-
+export const createRoom = async (data: CreateSchema) => {
+  createSchema.parse(data);
   const room = await db.room.create({ data: {} });
   const user = await db.user.create({
-    data: { name: input.name, admin: true, room: { connect: { id: room.id } } },
+    data: {
+      name: data.name,
+      admin: true,
+      room: { connect: { id: room.id } },
+    },
   });
   redirect(`/wichteln/${room.id}?secret=${user.secret}`);
 };
 
-const joinSchema = z.object({
-  name: z.string().min(1),
-  roomId: z.string(),
-});
-
-export const joinRoom = async (formData: FormData) => {
-  const parsed = joinSchema.parse(Object.fromEntries(formData.entries()));
+export const joinRoom = async (data: JoinSchema) => {
+  joinSchema.parse(data);
   const room = await db.room.findUniqueOrThrow({
-    where: { id: parsed.roomId },
+    where: { id: data.roomId },
   });
   if (room.started)
     throw new Error("You cannot join a game which was already started");
   const createdUser = await db.user.create({
-    data: { name: parsed.name, room: { connect: { id: parsed.roomId } } },
+    data: { name: data.name, room: { connect: { id: data.roomId } } },
   });
   revalidatePath("/wichteln/[id]/admin", "page");
-  return redirect(
+  redirect(
     `/wichteln/${createdUser.roomId}?secret=${createdUser.secret}&showJoinModal=true`,
   );
 };
 
-export const kickFromRoom = async (userId: string) => {
+export const kickFromRoom = async (data: UserIdSchema) => {
+  userIdSchema.parse(data);
   const user = await db.user.findUniqueOrThrow({
-    where: { id: userId },
+    where: { id: data.userId },
     include: { room: true },
   });
   if (user.room.started)
@@ -177,9 +183,10 @@ const pick = async (users: User[], userPool: User[]) => {
   );
 };
 
-export const startGame = async (roomId: string) => {
+export const startGame = async (data: RoomIdSchema) => {
+  roomIdSchema.parse(data);
   const room = await db.room.findUniqueOrThrow({
-    where: { id: roomId },
+    where: { id: data.roomId },
     include: { users: true },
   });
   if (room.users.length <= 1)
@@ -188,6 +195,7 @@ export const startGame = async (roomId: string) => {
   await pick(room.users, room.users);
   await db.room.update({ where: { id: room.id }, data: { started: true } });
   revalidatePath("/wichteln/[id]", "page");
+  revalidatePath("/wichteln/[id]/admin", "page");
 };
 
 export type FilteredUser = Omit<User, "secret">;
