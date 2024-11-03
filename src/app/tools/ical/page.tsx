@@ -16,7 +16,7 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 
-const schema = z.object({
+const convertIcalSchema = z.object({
   file:
     typeof window === "undefined"
       ? z.any()
@@ -29,10 +29,10 @@ const schema = z.object({
   offsetHours: z.coerce.number().int().max(24).min(-24),
   offsetDays: z.coerce.number().int(),
 });
-type schemaT = z.infer<typeof schema>;
+type ConvertIcalSchema = z.infer<typeof convertIcalSchema>;
 
 const Page = () => {
-  const convert = async (formData: schemaT) => {
+  const convert = async (formData: ConvertIcalSchema) => {
     const file = (formData.file as FileList)[0]!;
     const data = await file.text();
     const jCalData = ICAL.parse(data) as object[] | object;
@@ -68,16 +68,8 @@ const Page = () => {
     link.click();
     link.parentNode?.removeChild(link);
   };
-  const form = useForm<schemaT>({
-    // resolver: async (data, context, options) => {
-    //   console.log("formData", data);
-    //   console.log(
-    //     "validation result",
-    //     await zodResolver(schema)(data, context, options),
-    //   );
-    //   return zodResolver(schema)(data, context, options);
-    // },
-    resolver: zodResolver(schema),
+  const form = useForm<ConvertIcalSchema>({
+    resolver: zodResolver(convertIcalSchema),
     defaultValues: { offsetDays: 0, offsetHours: 0 },
   });
 
