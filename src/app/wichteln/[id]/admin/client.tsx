@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { startGame } from "../../server";
+import { type RoomWithUsers, startGame } from "../../server";
 import { Button } from "~/components/ui/button";
 
 import {
@@ -30,11 +30,13 @@ import { useForm } from "react-hook-form";
 import { roomIdSchema, type RoomIdSchema } from "../../schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-export const InviteButton = ({ roomId }: { roomId: string }) => {
+export const InviteButton = ({ room }: { room: RoomWithUsers }) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="mt-2">Mitspieler einladen</Button>
+        <Button disabled={room.started} className="mt-2">
+          Mitspieler einladen
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -44,7 +46,7 @@ export const InviteButton = ({ roomId }: { roomId: string }) => {
           Du kannst deine Mitspieler einladen, imdem du Ihnen den Link, der
           unten steht zusendest.
         </p>
-        <LinkDisplayCopy relativeLink={`/wichteln/${roomId}/join`} />
+        <LinkDisplayCopy relativeLink={`/wichteln/${room.id}/join`} />
       </DialogContent>
     </Dialog>
   );

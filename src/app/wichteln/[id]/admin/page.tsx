@@ -84,7 +84,7 @@ const AdminPage = ({ room, user }: { room: RoomWithUsers; user: User }) => {
           <UserList room={room} admin users={room.users} currentUser={user} />
         </CardContent>
         <CardFooter>
-          <InviteButton roomId={room.id} />
+          <InviteButton room={room} />
         </CardFooter>
       </Card>
     </div>
