@@ -83,24 +83,22 @@ export const StartButton = ({ room }: { room: Room }) => {
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(async (v) => {
-                  try {
-                    await startGame(v);
-                    setOpen(false);
+                  const error = await startGame(v);
+                  if (error) {
                     toast({
-                      title: "Spiel gestartet",
-                      variant: "success",
-                      description:
-                        "Du hast das Spiel erfolgreich gestartet. Gehe zurück zum Raum, um deinen Wichtelpartner zu sehen.",
+                      title: "Fehler",
+                      variant: "error",
+                      description: error.message,
                     });
-                  } catch (e) {
-                    if (e instanceof Error) {
-                      toast({
-                        title: "Fehler",
-                        variant: "error",
-                        description: e.message,
-                      });
-                    }
+                    return;
                   }
+                  setOpen(false);
+                  toast({
+                    title: "Spiel gestartet",
+                    variant: "success",
+                    description:
+                      "Du hast das Spiel erfolgreich gestartet. Gehe zurück zum Raum, um deinen Wichtelpartner zu sehen.",
+                  });
                 })}
               >
                 <Button pending={form.formState.isSubmitting} type="submit">

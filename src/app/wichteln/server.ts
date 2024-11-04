@@ -15,6 +15,8 @@ import {
   roomIdSchema,
 } from "./schemas";
 
+type FallibleAction = Promise<undefined | { message: string }>;
+
 export const createRoom = async (data: CreateSchema) => {
   createSchema.parse(data);
   const room = await db.room.create({ data: {} });
@@ -28,13 +30,13 @@ export const createRoom = async (data: CreateSchema) => {
   redirect(`/wichteln/${room.id}?secret=${user.secret}`);
 };
 
-export const joinRoom = async (data: JoinSchema) => {
+export const joinRoom = async (data: JoinSchema): FallibleAction => {
   joinSchema.parse(data);
   const room = await db.room.findUniqueOrThrow({
     where: { id: data.roomId },
   });
   if (room.started)
-    throw new Error("You cannot join a game which was already started");
+    return { message: "You cannot join a game which was already started" };
   const createdUser = await db.user.create({
     data: { name: data.name, room: { connect: { id: data.roomId } } },
   });
@@ -44,14 +46,14 @@ export const joinRoom = async (data: JoinSchema) => {
   );
 };
 
-export const kickFromRoom = async (data: UserIdSchema) => {
+export const kickFromRoom = async (data: UserIdSchema): FallibleAction => {
   userIdSchema.parse(data);
   const user = await db.user.findUniqueOrThrow({
     where: { id: data.userId },
     include: { room: true },
   });
   if (user.room.started)
-    throw new Error("You cannot kick users from a game which has started");
+    return { message: "You cannot kick users from a game which has started" };
   await db.user.delete({ where: { id: user.id } });
   revalidatePath("/wichteln/[id]/admin", "page");
 };
@@ -183,14 +185,14 @@ const pick = async (users: User[], userPool: User[]) => {
   );
 };
 
-export const startGame = async (data: RoomIdSchema) => {
+export const startGame = async (data: RoomIdSchema): FallibleAction => {
   roomIdSchema.parse(data);
   const room = await db.room.findUniqueOrThrow({
     where: { id: data.roomId },
     include: { users: true },
   });
   if (room.users.length <= 1)
-    throw new Error("Cannot start game with 1 or less players");
+    return { message: "Cannot start game with 1 or less players" };
   if (room.started) throw new Error("Game is already started");
   await pick(room.users, room.users);
   await db.room.update({ where: { id: room.id }, data: { started: true } });

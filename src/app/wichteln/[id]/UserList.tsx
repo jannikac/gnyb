@@ -170,23 +170,21 @@ const KickButton = <T extends User | FilteredUser>({
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(async (v) => {
-                  try {
-                    await kickFromRoom(v);
-                    setOpen(false);
+                  const error = await kickFromRoom(v);
+                  if (error) {
                     toast({
-                      title: "Benutzer entfernt",
-                      variant: "success",
-                      description: `Du hast ${user.name} erfolgreich aus dem Raum entfernt.`,
+                      title: "Fehler",
+                      variant: "error",
+                      description: error.message,
                     });
-                  } catch (e) {
-                    if (e instanceof Error) {
-                      toast({
-                        title: "Fehler",
-                        variant: "error",
-                        description: e.message,
-                      });
-                    }
+                    return;
                   }
+                  setOpen(false);
+                  toast({
+                    title: "Benutzer entfernt",
+                    variant: "success",
+                    description: `Du hast ${user.name} erfolgreich aus dem Raum entfernt.`,
+                  });
                 })}
               >
                 <Button pending={form.formState.isSubmitting} type="submit">

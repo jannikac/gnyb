@@ -68,16 +68,14 @@ export const JoinRoomForm = ({ roomId }: { roomId: string }) => {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(async (v) => {
-          try {
-            await joinRoom(v);
-          } catch (e) {
-            if (e instanceof Error) {
-              toast({
-                title: "Fehler",
-                description: e.message,
-                variant: "error",
-              });
-            }
+          const error = await joinRoom(v);
+          if (error) {
+            toast({
+              title: "Fehler",
+              description: error.message,
+              variant: "error",
+            });
+            return;
           }
         })}
       >
