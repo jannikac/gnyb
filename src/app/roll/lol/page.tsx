@@ -30,7 +30,7 @@ const InfoCard = () => {
         <UnorderedList>
           <UnorderedList.Item>immer up-to-date</UnorderedList.Item>
           <UnorderedList.Item>
-            <Link className="underline" href="https://google.com">
+            <Link className="underline" href="https://github.com/jannikac/gnyb">
               vollständig Open Source
             </Link>
           </UnorderedList.Item>
